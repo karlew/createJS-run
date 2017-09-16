@@ -4,13 +4,14 @@
 		SCALE_Y = 1.5,	//Y轴缩放
 		GRAVITY = 15,	//重力加速度
 		JUMP_SPEED = 5,		//垂直速度
-		WIDTH = 40,
-		HEIGHT = 96,
-		PICWIDTH = 60,
-		PICHEIGHT = 60,
+		WIDTH = 40,			//序列帧人物的判定有效区域宽
+		HEIGHT = 96,		//序列帧人物的判定有效区域宽
+		PICWIDTH = 300,		//序列帧每张动作的宽
+		PICHEIGHT = 300,	//序列帧每张动作的高
+		SCALE_DOLL = 0.2,	//人物的缩放比例
 		PROPORTION = 150/1;  //游戏与实际的距离比例
 
-	var Man = function(x , y , img){
+	var Doll = function(x , y , img){
 		this.x = x;
 		this.y = y;
 		this.endy = y;
@@ -23,11 +24,12 @@
 		this.init(img);
 	}
 
-	Man.prototype = {
-		constructors:Man,
+	Doll.prototype = {
+		constructors:Doll,
 
 		init:function(img){
-			var manSpriteSheet = new createjs.SpriteSheet({
+			//动作序列设置
+			var dollSpriteSheet = new createjs.SpriteSheet({
 				"images":[img],
 				"frames":{"regX":0,"regY":1,"width":PICWIDTH,"height":PICHEIGHT,"count":13},
 				"animations":{
@@ -45,17 +47,12 @@
 						frames:[12],
 						next:"fall",
 						speed:1,
-					},
-					"die":{
-						frames:[12],
-						next:"die",
-						speed:1,
 					}
 				}
 			});
-			this.sprite = new createjs.Sprite(manSpriteSheet , this.state);
+			this.sprite = new createjs.Sprite(dollSpriteSheet , this.state);
 			this.sprite.framerate = FRAME_RATE;
-			this.sprite.setTransform(this.x, this.y, SCALE_X, SCALE_Y);
+			this.sprite.setTransform(this.x, this.y, SCALE_X*SCALE_DOLL, SCALE_Y*SCALE_DOLL);
 			stage.addChild(this.sprite);
 		},
 
@@ -87,21 +84,17 @@
 			}
 			
 			if(sprite.y>C_H+60){
+				document.getElementById("heart_img"+heartNum).style.display="none";
 				heartNum--;
-				$(".heart-img").eq(heartNum).hide();
 				if(heartNum == 0){
-					this.die();
+					this.state = "die";
 					createjs.Ticker.reset();
-					console.log("you Die!");
+					endFun()	
 				}else{
 					sprite.x = 0;
 					sprite.y = 100;
 					this.vy = 0;
 				}
-				
-				/* this.die();
-				createjs.Ticker.reset();
-				console.log("you Die!"); */
 			}
 
 			switch(this.state){
@@ -133,11 +126,6 @@
 			this.jumpNum++;
 		},
 
-		die:function(){
-			this.state = "die";
-			this.sprite.gotoAndPlay("die")
-		},
-
 		size:function(){
 			return {
 				w:WIDTH,
@@ -147,13 +135,13 @@
 
 		picsize:function(){
 			return {
-				w:PICWIDTH,
-				h:PICHEIGHT
+				w:PICWIDTH*SCALE_DOLL,
+				h:PICHEIGHT*SCALE_DOLL
 			}
 		}
 	}
 
-	w.createMan = function(x , y , img){
-		return new Man(x , y , img)
+	w.createDoll = function(x , y , img){
+		return new Doll(x , y , img)
 	};
 })(window)

@@ -1,5 +1,5 @@
 var stage , C_W , C_H , loader ,heartNum;
-var man , ground , sky;
+var doll , ground , sky;
 
 function init(){
     stage = new createjs.Stage("mycanvas");
@@ -10,12 +10,12 @@ function init(){
     heartNum = 3;
 
     var manifest = [
-        {src:"image/doll.png" , id:"man"},
+        {src:"image/doll.png" , id:"doll"},
         {src:"image/platform.png" , id:"platform"}
     ]
 
     loader = new createjs.LoadQueue(false);
-    loader.addEventListener("complete" , handleComplete);
+    loader.addEventListener("complete" , imgComplete);
     loader.loadManifest(manifest);
 
     drawLoading();
@@ -25,22 +25,22 @@ function drawLoading(){
     var ctx = stage.canvas.getContext("2d");
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#61beef";
     ctx.fillRect(0,0,C_W,C_H);
     ctx.fillStyle = "#FFF";
-    ctx.font = "25px";
-    ctx.fillText("Loading...",C_W/2,C_H/2)
+    ctx.font = "25px Arial";
+    ctx.fillText("Loading",C_W/2,C_H/2)
 }
 
 //地图数据 A为无台阶，B为低台阶，C为中台阶，D为高台阶
 var mapData = [
     "DABAACACABACAADACA",
-    "DABACACABACADACA",
-    "DABACACABACADACA"
+    "DABACACABACADACABA",
+    "DABACACABACADACADA"
 ]
 
-function handleComplete(){		//当图片素材load完后执行该方法
-    var manImage = loader.getResult("man"),
+function imgComplete(){		//当图片素材load完后执行该方法
+    var dollImage = loader.getResult("doll"),
         platform = loader.getResult("platform");
 
     sky = new createjs.Shape();
@@ -48,11 +48,11 @@ function handleComplete(){		//当图片素材load完后执行该方法
     stage.addChild(sky);
 
     mapHandle(platform);
-    man = createMan(0,100,manImage);
+    doll = createDoll(0,100,dollImage);
 
     //该框为判定角色的判定区域
-    kuang = new createjs.Shape();
-    kuang.graphics.beginStroke("rgba(255,0,0,0.5)").drawRect(0 , 0 , man.size().w , man.picsize().h*1);
+    coverage = new createjs.Shape();
+    coverage.graphics.beginStroke("rgba(255,0,0,0.5)").drawRect(0 , 0 , doll.size().w , doll.picsize().h*1);
 
     
 
@@ -62,16 +62,16 @@ function handleComplete(){		//当图片素材load完后执行该方法
 
     window.addEventListener("keydown" , function(event){
         event = event||window.event;
-        if(event.keyCode===32&&man.jumpNum<man.jumpMax){
-            man.jump();
+        if(event.keyCode===32&&doll.jumpNum<doll.jumpMax){
+            doll.jump();
         }
     })
 
-    window.addEventListener("touchstart" , function(e){
+    stage.canvas.addEventListener("touchstart" , function(e){
         e.preventDefault();
         e.stopPropagation();
-        if(man.jumpNum<man.jumpMax){
-            man.jump();
+        if(doll.jumpNum<doll.jumpMax){
+            doll.jump();
         }
     })
 }
@@ -79,12 +79,12 @@ function handleComplete(){		//当图片素材load完后执行该方法
 
 var mapIndex = 0,		//地图序列
     Mix = 0,			//地图数组的索引
-    allStones = [],		//存放所有的石头
-    lastStone = null;	//存放最后一个石头
+    allPlatforms = [],		//存放所有的石头
+    lastPlatform = null;	//存放最后一个石头
 
 function mapHandle(platform){		//初始化地图
-    allStones.length = 0;
-    var stoneImage = platform,kind = null;
+    allPlatforms.length = 0;
+    var platformImage = platform,kind = null;
     for(var i=0;i<40;i++){			//把需要用到的石头预先放入容器中准备好
         switch(i){
             case 0:kind="A";break;
@@ -92,26 +92,26 @@ function mapHandle(platform){		//初始化地图
             case 20:kind="C";break;
             case 30:kind="D";break;
         }
-        var st = createStone(C_W , kind , stoneImage);
-        allStones.push(st)
+        var st = createPlatform(C_W , kind , platformImage);
+        allPlatforms.push(st)
     }
     
     Mix = Math.floor(Math.random()*mapData.length);			//随机地图序列
-    for(var i=0;i<8;i++){
-        setStone(false)
+    for(var i=0;i<16;i++){
+        setPlatform(false)
     }
 }
 
-function setStone(remove){		//添加陆地的平台
+function setPlatform(remove){		//添加陆地的平台
     var arg = mapData[Mix].charAt(mapIndex)
 
-    for(var z=0;z<allStones.length;z++){
-        if(!allStones[z].shape.visible&&allStones[z].kind===arg){
-            var st = allStones[z];
+    for(var z=0;z<allPlatforms.length;z++){
+        if(!allPlatforms[z].shape.visible&&allPlatforms[z].kind===arg){
+            var st = allPlatforms[z];
             st.shape.visible = true;
-            st.shape.x = lastStone===null?0:lastStone.shape.x+lastStone.w;
+            st.shape.x = lastPlatform===null?0:lastPlatform.shape.x+lastPlatform.w;
 
-            lastStone = st;
+            lastPlatform = st;
             break;
         }
     }
@@ -123,50 +123,55 @@ function setStone(remove){		//添加陆地的平台
     }
 }
 
-function tick(event){		//舞台逐帧逻辑处理函数
-    man.update();
+function tick(event){		//舞台逐帧处理
+    doll.update();
 
-    kuang.x = man.sprite.x+(man.picsize().w*1.5-man.size().w)/2;	//参考框
-    kuang.y = man.sprite.y;
+    coverage.x = doll.sprite.x+(doll.picsize().w*1.5-doll.size().w)/2;	
+    coverage.y = doll.sprite.y;
 
-    man.ground.length=0;
-    var cg = stoneHandle();
+    doll.ground.length=0;
+    var stepOn = platformHandle();
 
-    if(man.ground[0]&&!cg) {
-        man.ground.sort(function(a,b){return b.h-a.h});
-        man.endy = man.ground[0].y-man.picsize().h*1.5;
+    if(doll.ground[0]&&!stepOn) {
+        doll.ground.sort(function(a,b){return b.h-a.h});
+        doll.endy = doll.ground[0].y-doll.picsize().h*1.5;
     }
 
     stage.update(event)
 }
 
-
-function stoneHandle(){		//石头的逐帧处理  cg为判断当前角色的位置是否被阻挡，overStone是保存离开stage的石头块
-    var cg = false , overStone = null;
-    allStones.forEach(function(s){   //遍历石头，确定玩家落点
+//平台逐帧处理
+function platformHandle(){		
+    // stepOn为判断当前角色是否处于平台落点，overPlatform为需要从stage移除的平台
+    var stepOn = false , 
+    overPlatform = null;
+    allPlatforms.forEach(function(s){ 
         if(s.shape.visible){
             s.update();
 
             if(s.shape.visible&&s.shape.x<=-s.w){
-                overStone = s;
+                overPlatform = s;
             }
 
-            var distance = Math.abs((kuang.x+man.size().w/2)-(s.shape.x+s.w/2));
-            if(distance<=(man.size().w+s.w)/2 && man.ground.indexOf(s)===-1){
-                man.ground.push(s);
+            var distance = Math.abs((coverage.x+doll.size().w/2)-(s.shape.x+s.w/2));
+            if(distance<=(doll.size().w+s.w)/2 && doll.ground.indexOf(s)===-1){
+                doll.ground.push(s);
 
-                if(s.y<(kuang.y+man.size().h-10)){
-                    // man.sprite.x = s.shape.x-man.picsize().w-8;
-                    cg = true;
+                if(s.y<(coverage.y+doll.size().h-10)){
+                    stepOn = true;
                 }
             }
         }
     });
-    if(overStone) {
-        setStone(true);
-        overStone.shape.visible = false;
+    if(overPlatform) {
+        setPlatform(true);
+        overPlatform.shape.visible = false;
     }
-    return cg;
+    return stepOn;
+}
+
+var endFun = function() {
+    console.log("game over")
 }
 
 init();

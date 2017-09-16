@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0;">
+	<meta name="viewport" content="initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0">
 	<title>run</title>
 	<link href="css/style.css" rel="stylesheet">
-	<script src="js/jquery.min.js"></script>
 	<script src="js/easeljs-0.7.1.min.js"></script>
 	<script src="js/preloadjs-0.4.1.min.js"></script>
-	<script src="js/person.js"></script>
-	<script src="js/otherThings.js"></script>
+	<script src="js/doll.js"></script>
+	<script src="js/platform.js"></script>
 </head>
 <body>
 	<div class="wrap">
-		<canvas id="mycanvas" width="700" height="600"></canvas>
+		<canvas id="mycanvas"></canvas>
 		<div class="live-wrap">
 			<img class="live-img" src="image/live-img.png" alt="">
 			<div class="heart-wrap">
-				<img class="heart-img" src="image/heart.png" alt="">
-				<img class="heart-img" src="image/heart.png" alt="">
-				<img class="heart-img" src="image/heart.png" alt="">
+				<img id="heart_img1" class="heart-img" src="image/heart.png" alt="">
+				<img id="heart_img2" class="heart-img" src="image/heart.png" alt="">
+				<img id="heart_img3" class="heart-img" src="image/heart.png" alt="">
 			</div>
 		</div>
 	</div>
